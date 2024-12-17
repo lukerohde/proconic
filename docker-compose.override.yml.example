@@ -1,0 +1,43 @@
+services:
+  app:
+    volumes:
+      - ./app:/home/pyuser/app:delegated
+      - ./.media_volume:/home/pyuser/app/media
+      - ./.packages:/home/pyuser/.local
+      - app_user:/home/pyuser # for bash history etc
+    command:
+      - ./docker-start.override
+    ports:
+      - $APP_PORT:3000
+    networks:
+      development:
+  pg:
+    ports:
+      - $POSTGRES_PORT:5432
+    networks:
+      - development
+    volumes:
+      - ./.pg_data:/pg_data
+      - db_root:/root # for bash history etc
+#      - ./backup.sql.gz:/docker-entrypoint-initdb.d/seed.sql.gz
+  nginx:
+    image: nginx:1.15-alpine
+    restart: unless-stopped
+    links:
+      - app
+    volumes:
+      - ./.nginx:/etc/nginx/conf.d
+      - ./.certbot/certs:/etc/letsencrypt
+      - ./.certbot/challenge:/var/www/certbot
+      - ./app/staticfiles:/usr/share/nginx/html/static_root
+      - ./app/templates/errors:/usr/share/nginx/html/errors
+      #- ./app/.collectstatic/media_root:/usr/share/nginx/html/media_root
+    ports:
+      - "80:80"
+      - "443:443"
+networks:
+  development:
+volumes:
+  app_user:
+  db_root:
+  
