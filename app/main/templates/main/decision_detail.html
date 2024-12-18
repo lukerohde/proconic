@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'team_list' %}">Teams</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'team_detail' team.pk %}">{{ team.name }}</a></li>
+            <li class="breadcrumb-item active">{{ decision.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <h1 class="display-6 fw-bold text-primary mb-0">{{ decision.name }}</h1>
+                <div class="btn-group">
+                    {% if decision.selected_option %}
+                    <form method="post" action="{% url 'clear_selected_option' team.pk decision.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger me-2" onclick="return confirm('Are you sure you want to clear the selection? This will reopen the decision.')">
+                            <i class="bi bi-x-circle me-2"></i>Clear Selection
+                        </button>
+                    </form>
+                    <button class="btn btn-primary" onclick="showSelectOptionModal()" data-bs-toggle="tooltip" title="Change selected option">
+                        <i class="bi bi-check-circle me-2"></i>Change Selection
+                    </button>
+                    {% else %}
+                    <button class="btn btn-primary" onclick="showSelectOptionModal()">
+                        <i class="bi bi-check-circle me-2"></i>Select Final Option
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-info-circle me-2"></i>Background</h5>
+                    <p class="text-muted">{{ decision.background }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5><i class="bi bi-question-circle me-2"></i>Problem Statement</h5>
+                    <p class="text-muted">{{ decision.problem_statement }}</p>
+                </div>
+            </div>
+
+            {% if decision.outcome %}
+            <div class="alert alert-success mb-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <h5 class="mb-0">Selected Option: {{ decision.selected_option.name }}</h5>
+                </div>
+                <p class="mb-0"><strong>Outcome:</strong> {{ decision.outcome }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Options Analysis</h5>
+            {% if options %}
+            <a href="{% url 'option_create' team.pk decision.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Add Option
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if options %}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 200px">Aspect</th>
+                            {% for option in options %}
+                            <th class="text-center {% if option == decision.selected_option %}table-success{% endif %}" 
+                                data-option-pk="{{ option.pk }}"
+                                data-name="{{ option.name }}"
+                                data-description="{{ option.description }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ option.name }}</span>
+                                    {% if not decision.selected_option %}
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="editOption('{{ option.pk }}')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteOption('{{ option.pk }}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if option == decision.selected_option %}
+                                <div class="mt-2 text-center">
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Selected Option
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Description</th>
+                            {% for option in options %}
+                            <td>{{ option.description }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <th>
+                                <span class="text-success">
+                                    <i class="bi bi-plus-circle me-2"></i>Pros
+                                </span>
+                            </th>
+                            {% for option in options %}
+                            <td>
+                                <ul class="list-unstyled mb-2">
+                                    {% for pro in option.pros.all %}
+                                    <li class="text-success d-flex justify-content-between align-items-center mb-1">
+                                        <span><i class="bi bi-check me-2"></i>{{ pro.description }}</span>
+                                        {% if not decision.selected_option %}
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deletePro('{{ option.pk }}', '{{ pro.pk }}')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% if not decision.selected_option %}
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm" id="pro-input-{{ option.pk }}" placeholder="Add a pro">
+                                    <button class="btn btn-outline-success" onclick="addPro('{{ option.pk }}')">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <th>
+                                <span class="text-danger">
+                                    <i class="bi bi-dash-circle me-2"></i>Cons
+                                </span>
+                            </th>
+                            {% for option in options %}
+                            <td>
+                                <ul class="list-unstyled mb-2">
+                                    {% for con in option.cons.all %}
+                                    <li class="text-danger d-flex justify-content-between align-items-center mb-1">
+                                        <span><i class="bi bi-x me-2"></i>{{ con.description }}</span>
+                                        {% if not decision.selected_option %}
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteCon('{{ option.pk }}', '{{ con.pk }}')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% if not decision.selected_option %}
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm" id="con-input-{{ option.pk }}" placeholder="Add a con">
+                                    <button class="btn btn-outline-danger" onclick="addCon('{{ option.pk }}')">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-list-check display-1 text-muted mb-3"></i>
+                <h3 class="text-muted">No Options Added Yet</h3>
+                <p class="text-muted mb-4">Start by adding options to analyze for this decision.</p>
+                <a href="{% url 'option_create' team.pk decision.pk %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Add First Option
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Select Option Modal -->
+<div class="modal fade" id="selectOptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% if decision.selected_option %}Change{% else %}Select{% endif %} Final Option</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="selectOptionForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Choose Option</label>
+                        <select class="form-select" name="option" required>
+                            <option value="">Select an option...</option>
+                            {% for option in options %}
+                            <option value="{{ option.pk }}" {% if option == decision.selected_option %}selected{% endif %}>
+                                {{ option.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Decision Outcome</label>
+                        <textarea class="form-control" name="outcome" rows="3" required
+                            placeholder="Explain why this option was chosen and any important implementation details...">{{ decision.outcome }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Selection</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Option Modal -->
+<div class="modal fade" id="editOptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Option</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editOptionForm" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editOptionName" class="form-label">Option Name</label>
+                        <input type="text" class="form-control" id="editOptionName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editOptionDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editOptionDescription" name="description" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editOption(pk) {
+    const form = document.getElementById('editOptionForm');
+    form.action = `/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${pk}/edit/`;
+    const option = document.querySelector(`[data-option-pk="${pk}"]`);
+    document.getElementById('editOptionName').value = option.dataset.name;
+    document.getElementById('editOptionDescription').value = option.dataset.description;
+    new bootstrap.Modal(document.getElementById('editOptionModal')).show();
+}
+
+function deleteOption(pk) {
+    if (confirm('Are you sure you want to delete this option?')) {
+        fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${pk}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).then(() => window.location.reload());
+    }
+}
+
+function addPro(optionPk) {
+    const input = document.getElementById(`pro-input-${optionPk}`);
+    const description = input.value.trim();
+    if (description) {
+        fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${optionPk}/pros/create/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: `description=${encodeURIComponent(description)}`,
+        }).then(() => window.location.reload());
+    }
+}
+
+function deletePro(optionPk, proPk) {
+    if (confirm('Are you sure you want to delete this pro?')) {
+        fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${optionPk}/pros/${proPk}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).then(() => window.location.reload());
+    }
+}
+
+function addCon(optionPk) {
+    const input = document.getElementById(`con-input-${optionPk}`);
+    const description = input.value.trim();
+    if (description) {
+        fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${optionPk}/cons/create/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: `description=${encodeURIComponent(description)}`,
+        }).then(() => window.location.reload());
+    }
+}
+
+function deleteCon(optionPk, conPk) {
+    if (confirm('Are you sure you want to delete this con?')) {
+        fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${optionPk}/cons/${conPk}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).then(() => window.location.reload());
+    }
+}
+
+function showSelectOptionModal() {
+    new bootstrap.Modal(document.getElementById('selectOptionModal')).show();
+}
+
+document.getElementById('selectOptionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const optionPk = form.querySelector('[name=option]').value;
+    const outcome = form.querySelector('[name=outcome]').value;
+
+    if (!outcome.trim()) {
+        alert('Please provide an outcome explanation.');
+        return;
+    }
+
+    fetch(`/teams/{{ team.pk }}/decisions/{{ decision.pk }}/options/${optionPk}/select/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `outcome=${encodeURIComponent(outcome)}`,
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        window.location.reload();
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('Failed to select option. Please try again.');
+    });
+});
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+
+<style>
+.table th, .table td {
+    vertical-align: middle;
+}
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+.alert-success {
+    border-left: 4px solid #198754;
+}
+.selected-option {
+    background-color: rgba(25, 135, 84, 0.1);
+}
+.badge {
+    font-size: 0.8rem;
+}
+.table-success {
+    --bs-table-bg: rgba(25, 135, 84, 0.1);
+}
+</style>
+{% endblock %}

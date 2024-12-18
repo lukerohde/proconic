@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-4">Join {{ team.name }}</h2>
+                    
+                    {% if not user.is_authenticated %}
+                        <p class="lead mb-4">You've been invited to join this team!</p>
+                        
+                        <div class="d-grid gap-3">
+                            <a href="{{ signup_url }}" class="btn btn-primary btn-lg">
+                                Create Account & Join Team
+                            </a>
+                            <p class="text-muted">Already have an account?</p>
+                            <a href="{{ login_url }}" class="btn btn-outline-primary">
+                                Sign In & Join Team
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Read-only Team Preview -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Team Overview</h3>
+                    
+                    {% if team.goals.exists %}
+                    <div class="mb-4">
+                        <h4>Team Goals</h4>
+                        <ul class="list-group">
+                            {% for goal in team.goals.all %}
+                            <li class="list-group-item">
+                                <h5 class="mb-1">{{ goal.name }}</h5>
+                                {% if goal.description %}
+                                <p class="mb-0 text-muted">{{ goal.description }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if team.principles.exists %}
+                    <div class="mb-4">
+                        <h4>Team Principles</h4>
+                        <ul class="list-group">
+                            {% for principle in team.principles.all %}
+                            <li class="list-group-item">
+                                <h5 class="mb-1">{{ principle.name }}</h5>
+                                {% if principle.description %}
+                                <p class="mb-0 text-muted">{{ principle.description }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

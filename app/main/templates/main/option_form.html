@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'team_list' %}">Teams</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'team_detail' team.pk %}">{{ team.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'decision_detail' team.pk decision.pk %}">{{ decision.name }}</a></li>
+            <li class="breadcrumb-item active">New Option</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-square me-2"></i>Add New Option</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Option Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback">
+                                Please provide a name for the option.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a description.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pros</label>
+                            <div id="pros-container">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" name="pros" required>
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeInput(this)">
+                                        <i class="bi bi-dash-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="addInput('pros')">
+                                <i class="bi bi-plus-circle me-2"></i>Add Pro
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cons</label>
+                            <div id="cons-container">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" name="cons" required>
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeInput(this)">
+                                        <i class="bi bi-dash-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="addInput('cons')">
+                                <i class="bi bi-plus-circle me-2"></i>Add Con
+                            </button>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Add Option
+                            </button>
+                            <a href="{% url 'decision_detail' team.pk decision.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addInput(type) {
+    const container = document.getElementById(`${type}-container`);
+    const newInput = document.createElement('div');
+    newInput.className = 'input-group mb-2';
+    newInput.innerHTML = `
+        <input type="text" class="form-control" name="${type}" required>
+        <button type="button" class="btn btn-outline-danger" onclick="removeInput(this)">
+            <i class="bi bi-dash-circle"></i>
+        </button>
+    `;
+    container.appendChild(newInput);
+}
+
+function removeInput(button) {
+    const container = button.parentElement.parentElement;
+    if (container.children.length > 1) {
+        button.parentElement.remove();
+    }
+}
+
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %}

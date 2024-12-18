@@ -34,9 +34,6 @@ alias dcl='docker-compose logs'
 
 Once in the app container you can run the django commands
 ```
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py createsuperuser --noinput
 python manage.py runserver 0.0.0.0:3000
 ``` 
 
@@ -68,4 +65,4 @@ If you are using the digital ocean deploy scripts in /deploy, there are two file
 * `.env-prod` for production configuration (same as .env unless you have different prod config)
 * `.docker-compose-override.yml.prod` which open the app port
 
-To setup completely new hosting, I purchased a domain from namecheap and configured custom dns pointing to digital ocean's nameservers - ns1.digitalocean.com, ns2.digitalocean.com, ns3.digitalocean.com (don't forgot to click the tick!).  I created a new project in digital ocean just to group the server and domain.  I added my new mac's public ssh key to my digital ocean team.   I think this key is used in two ways.  First to avoid needing to config doctl with a token and provide it all the time, automating the deployment script.  It is also added to the server by the deployment script for passwordless sign in.  I updated the .env-prod with domain name I purchased, and my ssh key name and public key.  I click-ops'd a dns domain/zone in digital ocean, but I think the deploy script would have done that for me. After that it was just a matter of running the deploy script.  Because I failed to save the custom dns settings at namecheap, certbot was failing because it reach my server to download the challenge file.  Waiting for DNS propergation is fun.  
+To setup completely new hosting, I purchased a domain from namecheap and configured custom dns pointing to digital ocean's nameservers - ns1.digitalocean.com, ns2.digitalocean.com, ns3.digitalocean.com (don't forgot to click the tick!).  I created a new project in digital ocean just to group the server and domain.  I added my new mac's public ssh key to my digital ocean team.   I think this key is used in two ways.  First to avoid needing to config doctl with a token and provide it all the time, automating the deployment script.  It is also added to the server by the deployment script for passwordless sign in.  I updated the .env-prod with domain name I purchased, and my ssh key name and public key.  I click-ops'd a dns domain/zone in digital ocean, but I think the deploy script does that. After that it was just a matter of running the deploy script.  You have to wait for dns propagation before certbot can get the challenge file.  
