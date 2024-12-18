@@ -1,16 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>403 Forbidden</title>
-</head>
-<body style="background-color: #f8f0e3; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 50px;">
-    <h1 style="color: #b5651d; font-size: 3rem;">403 Forbidden</h1>
-    <p style="color: #6c757d; font-size: 1.5rem;">You don’t have permission to access this resource.</p>
-    <img src="/errors/403.jpg" alt="403 Forbidden" style="max-width: 500px; margin-top: 30px; border: 3px solid #b5651d;">
-    <div style="margin-top: 30px;">
-        <a href="/" style="color: #ffbf00; text-decoration: none; font-weight: bold; font-size: 1.2rem;">Return to Home</a>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center">
+        <i class="bi bi-shield-lock display-1 text-danger mb-4"></i>
+        <h1 class="display-4 fw-bold text-danger mb-4">403: Decision Blocked</h1>
+        <p class="lead mb-4">Whoops! Looks like you don't have permission to make this decision.</p>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-3"><i class="bi bi-lightbulb me-2"></i>Access Analysis</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-person-fill-lock text-danger me-2"></i>
+                            <h6 class="mb-0">Current Status</h6>
+                        </div>
+                        <p class="text-muted small">You're trying to access a restricted area. This is like trying to join a team meeting you weren't invited to!</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-person-fill-check text-success me-2"></i>
+                            <h6 class="mb-0">Recommended Action</h6>
+                        </div>
+                        <p class="text-muted small">Head back to safety or request access from your team administrator.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'team_list' %}" class="btn btn-primary">
+                <i class="bi bi-house-door me-2"></i>Go Home
+            </a>
+            <button onclick="history.back()" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-2"></i>Go Back
+            </button>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,16 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>404 Not Found</title>
-</head>
-<body style="background-color: #f8f0e3; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 50px;">
-    <h1 style="color: #b5651d; font-size: 3rem;">404 Not Found</h1>
-    <p style="color: #6c757d; font-size: 1.5rem;">The page you’re looking for could not be found.</p>
-    <img src="/errors/404.jpg" alt="404 Not Found" style="max-width: 500px; margin-top: 30px; border: 3px solid #b5651d;">
-    <div style="margin-top: 30px;">
-        <a href="/" style="color: #ffbf00; text-decoration: none; font-weight: bold; font-size: 1.2rem;">Return to Home</a>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center">
+        <i class="bi bi-compass display-1 text-primary mb-4"></i>
+        <h1 class="display-4 fw-bold text-primary mb-4">404: Lost in Decision Space</h1>
+        <p class="lead mb-4">Looks like we've reached a decision point, but all options lead to nowhere! The page you're looking for doesn't exist.</p>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-3"><i class="bi bi-lightbulb me-2"></i>Decision Analysis</h5>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            <h6 class="mb-0">Option 1: Go Home</h6>
+                        </div>
+                        <p class="text-muted small">Return to familiar territory and start fresh.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-arrow-left-circle text-primary me-2"></i>
+                            <h6 class="mb-0">Option 2: Go Back</h6>
+                        </div>
+                        <p class="text-muted small">Retrace your steps to your previous location.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-search text-info me-2"></i>
+                            <h6 class="mb-0">Option 3: Keep Looking</h6>
+                        </div>
+                        <p class="text-muted small">Maybe what you seek is elsewhere in our app.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'team_list' %}" class="btn btn-primary">
+                <i class="bi bi-house-door me-2"></i>Go Home
+            </a>
+            <button onclick="history.back()" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-2"></i>Go Back
+            </button>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
