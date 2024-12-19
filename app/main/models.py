@@ -15,9 +15,10 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
-    def get_share_url(self):
+    def get_invite_url(self):
+        """Get the URL for inviting users to this team."""
         from django.urls import reverse
-        return reverse('team_join', kwargs={'share_id': self.share_id})
+        return reverse('team_join_page', kwargs={'share_id': self.share_id})
 
 class Goal(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)

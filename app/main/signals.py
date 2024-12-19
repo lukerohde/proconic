@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from allauth.account.signals import user_signed_up, user_logged_in
+from allauth.account.signals import user_signed_up
 from django.contrib import messages
 from .models import Team, Goal, Principle, Decision, Option
 
@@ -79,17 +79,3 @@ def create_default_team(sender, request, user, **kwargs):
 3. We can upgrade later if needed
 4. The team is already familiar with it"""
     decision.save()
-
-@receiver(user_logged_in)
-def handle_team_join(sender, request, user, **kwargs):
-    """Handle team joins from invite links."""
-    share_id = request.session.get('team_share_id')
-    if share_id:
-        del request.session['team_share_id']
-        try:
-            team = Team.objects.get(share_id=share_id)
-            if user not in team.members.all():
-                team.members.add(user)
-                messages.success(request, f"You've been added to {team.name}!")
-        except Team.DoesNotExist:
-            pass

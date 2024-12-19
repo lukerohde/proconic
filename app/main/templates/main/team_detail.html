@@ -17,7 +17,7 @@
                     <small class="text-muted">Team Owner: {{ team.owner.username }}</small>
                 </div>
                 <div class="btn-group">
-                    <button class="btn btn-outline-primary" id="shareButton" onclick="copyShareLink('{{ team.share_id }}')" data-bs-toggle="tooltip" data-bs-title="Copy invite link">
+                    <button class="btn btn-outline-primary" id="shareButton" onclick="copyShareLink('{{ request.scheme }}://{{ request.get_host }}{{ team.get_invite_url }}')" data-bs-toggle="tooltip" data-bs-title="Copy invite link">
                         <i class="bi bi-share"></i> Share
                     </button>
                     {% if user == team.owner %}
@@ -326,8 +326,7 @@ function deletePrinciple(pk) {
     }
 }
 
-function copyShareLink(shareId) {
-    const shareUrl = `${window.location.origin}/teams/join/${shareId}/`;
+function copyShareLink(shareUrl) {
     const button = document.getElementById('shareButton');
     
     navigator.clipboard.writeText(shareUrl)
