@@ -11,8 +11,11 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="display-5 fw-bold text-primary">{{ team.name }}</h1>
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h1 class="display-5 fw-bold text-primary mb-1">{{ team.name }}</h1>
+                    <small class="text-muted">Team Owner: {{ team.owner.username }}</small>
+                </div>
                 <div class="btn-group">
                     <button class="btn btn-outline-primary" id="shareButton" onclick="copyShareLink('{{ team.share_id }}')" data-bs-toggle="tooltip" data-bs-title="Copy invite link">
                         <i class="bi bi-share"></i> Share
@@ -86,7 +89,7 @@
             </div>
 
             <!-- Principles Section -->
-            <div class="card shadow-sm">
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-compass me-2"></i>Principles</h5>
                     <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPrincipleModal">
@@ -118,9 +121,49 @@
                     {% endfor %}
                 </div>
             </div>
+            <!-- Members Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>Members</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for member in team.members.all %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span>{{ member.username }}</span>
+                            {% if member == team.owner %}
+                            <small class="text-muted ms-2">(Owner)</small>
+                            {% endif %}
+                        </div>
+                        {% if user == team.owner and member != team.owner %}
+                        <form method="post" action="{% url 'team_remove_member' pk=team.pk member_pk=member.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to remove {{ member.username }} from the team?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-person-x"></i> Remove
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if user != team.owner %}
+                        <div class="list-group-item text-center py-3">
+                            <form method="post" action="{% url 'team_leave' pk=team.pk %}" onsubmit="return confirm('Are you sure you want to leave this team?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Leave Team
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            
         </div>
     </div>
 </div>
+
+
 
 <!-- Add Goal Modal -->
 <div class="modal fade" id="addGoalModal" tabindex="-1">

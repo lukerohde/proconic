@@ -1,66 +1,97 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
                 <div class="card-body text-center">
-                    <h2 class="card-title mb-4">Join {{ team.name }}</h2>
+                    <h1 class="display-6 mb-4">Join {{ team.name }}</h1>
                     
-                    {% if not user.is_authenticated %}
-                        <p class="lead mb-4">You've been invited to join this team!</p>
-                        
-                        <div class="d-grid gap-3">
-                            <a href="{{ signup_url }}" class="btn btn-primary btn-lg">
-                                Create Account & Join Team
+                    {% if user.is_authenticated %}
+                        {% if is_member %}
+                            <p class="text-muted mb-4">You're already a member of this team!</p>
+                            <a href="{% url 'team_detail' pk=team.id %}" class="btn btn-primary">
+                                <i class="bi bi-arrow-right me-2"></i>Go to Team
                             </a>
-                            <p class="text-muted">Already have an account?</p>
-                            <a href="{{ login_url }}" class="btn btn-outline-primary">
-                                Sign In & Join Team
+                        {% else %}
+                            <p class="text-muted mb-4">Click below to join this team and start collaborating!</p>
+                            <form method="post" action="{% url 'team_join_action' share_id=team.share_id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus me-2"></i>Join Team
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted mb-4">Sign up or log in to join this team</p>
+                        <div class="d-grid gap-3">
+                            <a href="{% url 'team_join_signup' share_id=team.share_id %}" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-2"></i>Sign Up
+                            </a>
+                            <a href="{% url 'team_join_login' share_id=team.share_id %}" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Log In
                             </a>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Read-only Team Preview -->
-            <div class="card mt-4 shadow-sm">
+            <!-- Team Overview -->
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <h3 class="card-title mb-4">Team Overview</h3>
                     
                     {% if team.goals.exists %}
                     <div class="mb-4">
-                        <h4>Team Goals</h4>
-                        <ul class="list-group">
+                        <h4 class="h5 mb-3"><i class="bi bi-bullseye me-2"></i>Goals</h4>
+                        <div class="list-group">
                             {% for goal in team.goals.all %}
-                            <li class="list-group-item">
-                                <h5 class="mb-1">{{ goal.name }}</h5>
+                            <div class="list-group-item">
+                                <h5 class="h6 mb-1">{{ goal.name }}</h5>
                                 {% if goal.description %}
-                                <p class="mb-0 text-muted">{{ goal.description }}</p>
+                                <p class="mb-0 text-muted small">{{ goal.description }}</p>
                                 {% endif %}
-                            </li>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                     {% endif %}
 
                     {% if team.principles.exists %}
                     <div class="mb-4">
-                        <h4>Team Principles</h4>
-                        <ul class="list-group">
+                        <h4 class="h5 mb-3"><i class="bi bi-compass me-2"></i>Principles</h4>
+                        <div class="list-group">
                             {% for principle in team.principles.all %}
-                            <li class="list-group-item">
-                                <h5 class="mb-1">{{ principle.name }}</h5>
+                            <div class="list-group-item">
+                                <h5 class="h6 mb-1">{{ principle.name }}</h5>
                                 {% if principle.description %}
-                                <p class="mb-0 text-muted">{{ principle.description }}</p>
+                                <p class="mb-0 text-muted small">{{ principle.description }}</p>
                                 {% endif %}
-                            </li>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                     {% endif %}
+
+                    {% if not team.goals.exists and not team.principles.exists %}
+                    <p class="text-muted text-center mb-0">This team hasn't defined any goals or principles yet.</p>
+                    {% endif %}
+
+                    <!-- Members Section -->
+                    <div class="mb-4">
+                        <h4 class="h5 mb-3"><i class="bi bi-people me-2"></i>Members ({{ team.members.count }})</h4>
+                        <div class="list-group">
+                            {% for member in team.members.all %}
+                            <div class="list-group-item d-flex align-items-center">
+                                <span>{{ member.username }}</span>
+                                {% if member == team.owner %}
+                                <small class="text-muted ms-2">(Owner)</small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
