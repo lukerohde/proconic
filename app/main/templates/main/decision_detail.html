@@ -16,12 +16,6 @@
                 <h1 class="display-6 fw-bold text-primary mb-0">{{ decision.name }}</h1>
                 <div class="btn-group">
                     {% if decision.selected_option %}
-                    <form method="post" action="{% url 'clear_selected_option' team.pk decision.pk %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger me-2" onclick="return confirm('Are you sure you want to clear the selection? This will reopen the decision.')">
-                            <i class="bi bi-x-circle me-2"></i>Clear Selection
-                        </button>
-                    </form>
                     <button class="btn btn-primary" onclick="showSelectOptionModal()" data-bs-toggle="tooltip" title="Change selected option">
                         <i class="bi bi-check-circle me-2"></i>Change Selection
                     </button>
@@ -220,6 +214,14 @@
                     <button type="submit" class="btn btn-primary">Confirm Selection</button>
                 </div>
             </form>
+            {% if decision.selected_option %}
+            <form method="post" action="{% url 'clear_selected_option' team.pk decision.pk %}" class="modal-footer border-top-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to clear the selection? This will reopen the decision.')">
+                    <i class="bi bi-x-circle me-2"></i>Clear Selection
+                </button>
+            </form>
+            {% endif %}
         </div>
     </div>
 </div>
