@@ -145,7 +145,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_ADAPTER = "main.adapters.CustomAccountAdapter"
+ACCOUNT_ADAPTER = "proconic.account_adapter.InviteOnlyAccountAdapter"
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',

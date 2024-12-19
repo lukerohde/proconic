@@ -8,7 +8,15 @@ urlpatterns = [
     path('teams/create/', views.team_create, name='team_create'),
     path('teams/<uuid:pk>/', views.team_detail, name='team_detail'),
     path('teams/<uuid:pk>/edit/', views.team_edit, name='team_edit'),
-    path('teams/join/<uuid:share_id>/', views.team_join, name='team_join'),
+    path('teams/<uuid:pk>/delete/', views.team_delete, name='team_delete'),
+    path('teams/<uuid:pk>/leave/', views.team_leave, name='team_leave'),
+    path('teams/<uuid:pk>/members/<int:member_pk>/remove/', views.team_remove_member, name='team_remove_member'),
+    
+    # Team join
+    path('teams/join/<uuid:share_id>/', views.team_join_page, name='team_join_page'),
+    path('teams/join/<uuid:share_id>/action/', views.team_join_action, name='team_join_action'),
+    path('teams/join/<uuid:share_id>/signup/', views.team_join_signup, name='team_join_signup'),
+    path('teams/join/<uuid:share_id>/login/', views.team_join_login, name='team_join_login'),
     
     # Goals
     path('teams/<uuid:team_pk>/goals/create/', views.goal_create, name='goal_create'),

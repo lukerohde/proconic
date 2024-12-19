@@ -34,6 +34,21 @@
                     </form>
                 </div>
             </div>
+
+            {% if user == team.owner %}
+            <div class="card shadow-sm mt-4 border-danger">
+                <div class="card-body">
+                    <h5 class="text-danger mb-3">Danger Zone</h5>
+                    <p class="text-muted mb-3">Once you delete a team, there is no going back. Please be certain.</p>
+                    <form method="post" action="{% url 'team_delete' team.pk %}" onsubmit="return confirm('Are you sure you want to delete this team? This action cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-2"></i>Delete Team
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

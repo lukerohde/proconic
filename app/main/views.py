@@ -1,16 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Team, Decision, Option, Pro, Con, Goal, Principle
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from collections import defaultdict
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
 from .ai_helpers import call_openai
 import logging
 from urllib.parse import urlencode
+from django.contrib.auth import get_user_model
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -55,6 +56,38 @@ def team_edit(request, pk):
             return redirect('team_detail', pk=team.pk)
     
     return render(request, 'main/team_edit.html', {'team': team})
+
+@login_required
+def team_delete(request, pk):
+    team = get_object_or_404(Team, pk=pk, owner=request.user)
+    team.delete()
+    messages.success(request, "Team deleted successfully!")
+    return redirect('team_list')
+
+@login_required
+def team_leave(request, pk):
+    team = get_object_or_404(Team, pk=pk, members=request.user)
+    if request.user == team.owner:
+        messages.error(request, "Team owners cannot leave their own team. Delete the team instead.")
+    else:
+        team.members.remove(request.user)
+        messages.success(request, f"You have left {team.name}")
+    return redirect('team_list')
+
+@login_required
+@require_POST
+def team_remove_member(request, pk, member_pk):
+    team = get_object_or_404(Team, pk=pk, owner=request.user)
+    if member_pk == request.user.pk:
+        messages.error(request, "You cannot remove yourself. Use the delete team option instead.")
+    else:
+        member = get_object_or_404(get_user_model(), pk=member_pk)
+        if member == team.owner:
+            messages.error(request, "You cannot remove the team owner.")
+        else:
+            team.members.remove(member)
+            messages.success(request, f"{member.username} has been removed from the team.")
+    return redirect('team_detail', pk=team.pk)
 
 @login_required
 def decision_list(request, team_pk):
@@ -319,28 +352,61 @@ def principle_delete(request, team_pk, pk):
     messages.success(request, "Principle deleted successfully!")
     return redirect('team_detail', pk=team.pk)
 
-def team_join(request, share_id):
-    """Handle team joins via shareable link."""
-    team = get_object_or_404(Team, share_id=share_id)
-    
-    # Store share_id in session
-    request.session['team_share_id'] = str(share_id)
-    
+def team_join_page(request, share_id):
+    """Display the team join page with appropriate options based on user state."""
+    try:
+        team = Team.objects.get(share_id=share_id)
+    except Team.DoesNotExist:
+        raise Http404("Team not found")
+
     if request.user.is_authenticated:
-        # Check if user is already a member
-        if request.user in team.members.all():
-            messages.info(request, f"You're already a member of {team.name}")
-        else:
-            # Add user to team if they're not already a member
-            team.members.add(request.user)
-            messages.success(request, f"You've been added to {team.name}!")
-        return redirect('team_detail', pk=team.id)
+        is_member = request.user in team.members.all()
+        context = {
+            'team': team,
+            'is_member': is_member,
+        }
+    else:
+        context = {
+            'team': team,
+        }
     
-    # For unauthenticated users, show the join page
-    next_param = urlencode({'next': request.path})
-    context = {
-        'team': team,
-        'signup_url': f"{reverse('account_signup')}?{next_param}",
-        'login_url': f"{reverse('account_login')}?{next_param}"
-    }
     return render(request, 'main/team_join.html', context)
+
+@require_http_methods(["POST"])
+def team_join_action(request, share_id):
+    """Handle the action of joining a team - requires POST and authentication."""
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to join a team")
+        return redirect('team_join_page', share_id=share_id)
+    
+    try:
+        team = Team.objects.get(share_id=share_id)
+    except Team.DoesNotExist:
+        raise Http404("Team not found")
+
+    # Check if user is already a member
+    if request.user in team.members.all():
+        messages.info(request, f"You're already a member of {team.name}")
+    else:
+        # Add user to team
+        team.members.add(request.user)
+        messages.success(request, f"You've been added to {team.name}!")
+    
+    return redirect('team_detail', pk=team.pk)
+
+def handle_team_auth_redirect(request, share_id, auth_view):
+    """Helper function to set team share ID in session and redirect to auth view."""
+    try:
+        team = Team.objects.get(share_id=share_id)
+        request.session['team_share_id'] = str(share_id)
+        return redirect(auth_view)
+    except Team.DoesNotExist:
+        raise Http404("Team not found")
+
+def team_join_signup(request, share_id):
+    """Set team share ID in session and redirect to signup."""
+    return handle_team_auth_redirect(request, share_id, 'account_signup')
+
+def team_join_login(request, share_id):
+    """Set team share ID in session and redirect to login."""
+    return handle_team_auth_redirect(request, share_id, 'account_login')
